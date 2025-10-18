@@ -1,0 +1,24 @@
+You are required to build a frontend itinerary builder that allows users to create a multi-day tour plan and generate a PDF output based on the provided Figma design template.
+The final PDF output should look exactly like the Figma design or as close as possible in layout, structure, and styling.(figma design is attech)
+Task Guidelines:
+Use React to build the web app that takes user input and generates a pdf. You may also use frontend libraries such as Tailwind CSS to style your interface.
+    Focus on the following key objectives:
+        P1: Replicating the layout and structure of the Figma design as closely as possible.
+        P2: Implementing a clean, dynamic form system that allows user input and generates a PDF itinerary when the user clicks “Get Itinerary.” Take in all the user inputs in the form that would be required to generate the output pdf. The generated PDF should be in the exact same format to the provided Figma design. Kindly do not make a submission without any of the mentioned deliverables or with an output design that does not match the figma design. 
+        P3: All pages of the pdf output should have the company details in the footer part.
+            No backend or API integration is required for this task.
+            Task details are also available inside the Figma file, under the heading: “Task Description”
+            The output design must exactly match the Figma reference, both in layout and styling.
+        Figma link: https://www.figma.com/design/8NPgKLryEfGR2N6xo7DeVF/vigovia-task-phase?node-id=0-1&t=mbcVzmjcbXuDh7pL-1
+
+Key Requirements:
+        Users should be able to add or remove days from the itinerary.
+        For each day, users must be able to enter:
+        Activities / Sightseeing plans (Morning, Afternoon, Evening)
+        Flights, transfers, or transport details (if any)
+        Users should input hotel details (hotel name, check-in/check-out dates, number of nights, and city).
+        Tour overview details such as trip title, total duration, number of travelers, departure/arrival details, etc. must be captured.
+        Payment plan input: user specifies number of installments, payment amounts, and due dates.
+        Inclusions and exclusions should also be user-input.
+        After all data is entered, the system should generate a downloadable PDF itinerary that matches the given design.
+
