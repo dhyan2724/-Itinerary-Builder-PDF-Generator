@@ -33,19 +33,33 @@ const HotelsForm: React.FC<HotelsFormProps> = ({ control, setValue, watch }) => 
     remove(index);
   };
 
-  const updateHotel = (index: number, field: keyof HotelData, value: string | number) => {
-    const updatedHotels = [...hotels];
-    updatedHotels[index] = { ...updatedHotels[index], [field]: value };
-    setValue('hotels', updatedHotels);
-  };
-
   const calculateNights = (checkIn: string, checkOut: string) => {
     if (!checkIn || !checkOut) return 0;
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
-    const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
+    
+    // Ensure check-out is after check-in
+    if (checkOutDate <= checkInDate) return 0;
+    
+    const diffTime = checkOutDate.getTime() - checkInDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const handleDateChange = (index: number, field: 'checkIn' | 'checkOut', value: string) => {
+    const currentHotel = hotels[index];
+    if (!currentHotel) return;
+
+    const updatedHotel = { ...currentHotel, [field]: value };
+    
+    // Calculate nights if both dates are present
+    if (field === 'checkIn' && currentHotel.checkOut) {
+      updatedHotel.nights = calculateNights(value, currentHotel.checkOut);
+    } else if (field === 'checkOut' && currentHotel.checkIn) {
+      updatedHotel.nights = calculateNights(currentHotel.checkIn, value);
+    }
+
+    setValue(`hotels.${index}`, updatedHotel);
   };
 
   return (
@@ -83,8 +97,7 @@ const HotelsForm: React.FC<HotelsFormProps> = ({ control, setValue, watch }) => 
               <input
                 type="text"
                 className="form-input"
-                value={hotel.city}
-                onChange={(e) => updateHotel(index, 'city', e.target.value)}
+                {...control.register(`hotels.${index}.city`)}
                 placeholder="e.g., Singapore"
               />
             </div>
@@ -94,12 +107,9 @@ const HotelsForm: React.FC<HotelsFormProps> = ({ control, setValue, watch }) => 
               <input
                 type="date"
                 className="form-input"
-                value={hotel.checkIn}
-                onChange={(e) => {
-                  updateHotel(index, 'checkIn', e.target.value);
-                  const nights = calculateNights(e.target.value, hotel.checkOut);
-                  updateHotel(index, 'nights', nights);
-                }}
+                {...control.register(`hotels.${index}.checkIn`, {
+                  onChange: (e) => handleDateChange(index, 'checkIn', e.target.value)
+                })}
               />
             </div>
 
@@ -108,12 +118,9 @@ const HotelsForm: React.FC<HotelsFormProps> = ({ control, setValue, watch }) => 
               <input
                 type="date"
                 className="form-input"
-                value={hotel.checkOut}
-                onChange={(e) => {
-                  updateHotel(index, 'checkOut', e.target.value);
-                  const nights = calculateNights(hotel.checkIn, e.target.value);
-                  updateHotel(index, 'nights', nights);
-                }}
+                {...control.register(`hotels.${index}.checkOut`, {
+                  onChange: (e) => handleDateChange(index, 'checkOut', e.target.value)
+                })}
               />
             </div>
 
@@ -122,7 +129,7 @@ const HotelsForm: React.FC<HotelsFormProps> = ({ control, setValue, watch }) => 
               <input
                 type="number"
                 className="form-input"
-                value={hotel.nights}
+                {...control.register(`hotels.${index}.nights`)}
                 readOnly
               />
             </div>
@@ -132,8 +139,7 @@ const HotelsForm: React.FC<HotelsFormProps> = ({ control, setValue, watch }) => 
               <input
                 type="text"
                 className="form-input"
-                value={hotel.hotelName}
-                onChange={(e) => updateHotel(index, 'hotelName', e.target.value)}
+                {...control.register(`hotels.${index}.hotelName`)}
                 placeholder="e.g., Grand Hyatt Singapore"
               />
             </div>

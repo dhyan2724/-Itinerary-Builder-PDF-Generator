@@ -10,13 +10,14 @@ interface BasicInfoFormProps {
 }
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, setValue, watch }) => {
-  const adults = watch('adults') || 0;
-  const children = watch('children') || 0;
-  const infants = watch('infants') || 0;
+  const adults = Number(watch('adults')) || 0;
+  const children = Number(watch('children')) || 0;
+  const infants = Number(watch('infants')) || 0;
+  const totalTravelers = adults + children + infants;
 
   React.useEffect(() => {
-    setValue('totalTravelers', adults + children + infants);
-  }, [adults, children, infants, setValue]);
+    setValue('totalTravelers', totalTravelers);
+  }, [adults, children, infants, setValue, totalTravelers]);
 
   return (
     <div className="space-y-6">
@@ -76,7 +77,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, setValue, watch 
           <input
             type="number"
             className="form-input"
-            value={adults + children + infants}
+            value={totalTravelers}
             readOnly
           />
         </div>
