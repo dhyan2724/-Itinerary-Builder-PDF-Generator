@@ -141,10 +141,6 @@ export const generatePDF = async (data: ItineraryData): Promise<void> => {
 
     // Add first page
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    // Only add footer if this is the last page
-    if (pageNumber === totalPages) {
-      addCompanyFooter(pdf, pageNumber);
-    }
     heightLeft -= pageHeight;
     pageNumber++;
 
@@ -153,10 +149,6 @@ export const generatePDF = async (data: ItineraryData): Promise<void> => {
       position = heightLeft - imgHeight;
       pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      // Only add footer if this is the last page
-      if (pageNumber === totalPages) {
-        addCompanyFooter(pdf, pageNumber);
-      }
       heightLeft -= pageHeight;
       pageNumber++;
     }
@@ -169,30 +161,6 @@ export const generatePDF = async (data: ItineraryData): Promise<void> => {
   }
 };
 
-const addCompanyFooter = (pdf: jsPDF, pageNumber: number) => {
-  const pageHeight = 297;
-  const footerY = pageHeight - 15;
-  
-  // Set font for footer
-  pdf.setFontSize(8);
-  pdf.setTextColor(100, 100, 100);
-  
-  // Left section - Logo and Company Details
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(139, 69, 19); // Dark purple for "vi"
-  pdf.text('vi', 10, footerY - 12);
-  pdf.setTextColor(128, 0, 128); // Light purple for "govia"
-  pdf.text('govia', 13, footerY - 12);
-  
-  // Company details to the right of logo
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(100, 100, 100);
-  pdf.text('vigovia.com', 25, footerY - 12);
-  pdf.text('Registered Office: 123, Green Park, New Delhi, India', 25, footerY - 9);
-  pdf.text('Phone: +91-9876543210', 25, footerY - 6);
-  pdf.text('Email: info@vigovia.com', 25, footerY - 3);
-  pdf.text('CIN: U74999DL2017PTC311111', 25, footerY);
-};
 
 const generatePDFContent = (data: ItineraryData): string => {
   const totalDays = data.days.length;
@@ -568,8 +536,8 @@ const generatePDFContent = (data: ItineraryData): string => {
     <div class="container">
       <!-- Header Banner -->
       <div class="header-banner">
-        <h1>Hi, ${data.travelerName || 'Rahul'}!</h1>
-        <h2>${data.destination || 'Singapore'} Itinerary</h2>
+        <h1>Hi, ${data.travelerName || 'Traveler'}!</h1>
+        <h2>${data.destination || 'Destination'} Itinerary</h2>
         <h3>${totalDays} Days ${totalNights} Nights</h3>
         <div class="header-icons">
           <div class="header-icon"></div>
@@ -580,6 +548,7 @@ const generatePDFContent = (data: ItineraryData): string => {
       </div>
       
       <!-- Travel Details Table -->
+      ${data.departureFrom || data.departureTo || data.destination ? `
       <div class="travel-details">
         <table>
           <thead>
@@ -593,15 +562,16 @@ const generatePDFContent = (data: ItineraryData): string => {
           </thead>
           <tbody>
             <tr>
-              <td>${data.departureFrom || 'Mumbai'}</td>
-              <td>${data.departureTo || '19-Nov-2024'}</td>
-              <td>${data.departureTo || '22-Nov-2024'}</td>
-              <td>${data.destination || 'Singapore'}</td>
+              <td>${data.departureFrom || ''}</td>
+              <td>${data.departureTo || ''}</td>
+              <td>${data.departureTo || ''}</td>
+              <td>${data.destination || ''}</td>
               <td>${totalTravelers}</td>
             </tr>
           </tbody>
         </table>
       </div>
+      ` : ''}
       
       <!-- Daily Itinerary -->
       <div class="daily-itinerary">
@@ -635,40 +605,21 @@ const generatePDFContent = (data: ItineraryData): string => {
       </div>
       
       <!-- Flight Summary -->
+      ${data.flights.length > 0 ? `
       <div class="flight-summary">
         <div class="section-title">Flight Summary</div>
-        ${data.flights.length > 0 ? data.flights.map(flight => `
+        ${data.flights.map(flight => `
           <div class="flight-item">
             <div class="flight-date">${flight.date}</div>
             <div class="flight-arrow">→</div>
             <div class="flight-details">Fly ${flight.airline} (${flight.flightNumber}) from ${flight.from} to ${flight.to}</div>
           </div>
-        `).join('') : `
-          <div class="flight-item">
-            <div class="flight-date">Thu 19 Jun 24</div>
-            <div class="flight-arrow">→</div>
-            <div class="flight-details">Fly Air India (AI 120) from Delhi (DEL) to Singapore (SIN)</div>
-          </div>
-          <div class="flight-item">
-            <div class="flight-date">Thu 19 Jun 24</div>
-            <div class="flight-arrow">→</div>
-            <div class="flight-details">Fly Air India (AI 120) from Delhi (DEL) to Singapore (SIN)</div>
-          </div>
-          <div class="flight-item">
-            <div class="flight-date">Thu 19 Jun 24</div>
-            <div class="flight-arrow">→</div>
-            <div class="flight-details">Fly Air India (AI 120) from Delhi (DEL) to Singapore (SIN)</div>
-          </div>
-          <div class="flight-item">
-            <div class="flight-date">Thu 19 Jun 24</div>
-            <div class="flight-arrow">→</div>
-            <div class="flight-details">Fly Air India (AI 120) from Delhi (DEL) to Singapore (SIN)</div>
-          </div>
-        `}
-        <div class="flight-note">Each passenger is allowed 20kg check-in baggage and 7kg hand baggage.</div>
+        `).join('')}
       </div>
+      ` : ''}
       
       <!-- Hotel Bookings -->
+      ${data.hotels.length > 0 ? `
       <div class="section-title">Hotel Bookings</div>
       <table class="info-table">
         <thead>
@@ -681,7 +632,7 @@ const generatePDFContent = (data: ItineraryData): string => {
           </tr>
         </thead>
         <tbody>
-          ${data.hotels.length > 0 ? data.hotels.map(hotel => `
+          ${data.hotels.map(hotel => `
             <tr>
               <td>${hotel.city}</td>
               <td>${hotel.checkIn}</td>
@@ -689,48 +640,13 @@ const generatePDFContent = (data: ItineraryData): string => {
               <td>${hotel.nights}</td>
               <td>${hotel.hotelName}</td>
             </tr>
-          `).join('') : `
-            <tr>
-              <td>Singapore</td>
-              <td>19/11/2024</td>
-              <td>20/11/2024</td>
-              <td>1</td>
-              <td>Hotel Grand Central</td>
-            </tr>
-            <tr>
-              <td>Singapore</td>
-              <td>20/11/2024</td>
-              <td>21/11/2024</td>
-              <td>1</td>
-              <td>Hotel Grand Central</td>
-            </tr>
-            <tr>
-              <td>Singapore</td>
-              <td>21/11/2024</td>
-              <td>22/11/2024</td>
-              <td>1</td>
-              <td>Parkroyal Collection Pickering</td>
-            </tr>
-            <tr>
-              <td>Singapore</td>
-              <td>22/11/2024</td>
-              <td>23/11/2024</td>
-              <td>1</td>
-              <td>Parkroyal Collection Pickering</td>
-            </tr>
-            <tr>
-              <td>Singapore</td>
-              <td>23/11/2024</td>
-              <td>24/11/2024</td>
-              <td>1</td>
-              <td>Parkroyal Collection Pickering</td>
-            </tr>
-          `}
+          `).join('')}
         </tbody>
       </table>
-      <div class="flight-note">Hotel details are subject to change based on availability. Similar category hotels will be provided if the mentioned hotels are unavailable.</div>
+      ` : ''}
       
       <!-- Important Notes -->
+      ${data.importantNotes.length > 0 ? `
       <div class="section-title">Important Notes</div>
       <table class="info-table">
         <thead>
@@ -740,34 +656,18 @@ const generatePDFContent = (data: ItineraryData): string => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Visa Processing Time</td>
-            <td>7-10 working days for Singapore visa.</td>
-          </tr>
-          <tr>
-            <td>Cancellation Conditions</td>
-            <td>Cancellation charges apply as per airline and hotel policies.</td>
-          </tr>
-          <tr>
-            <td>Baggage</td>
-            <td>20kg check-in baggage and 7kg hand baggage.</td>
-          </tr>
-          <tr>
-            <td>Meals</td>
-            <td>Breakfast included at hotels.</td>
-          </tr>
-          <tr>
-            <td>Travel Insurance</td>
-            <td>Not included in the package.</td>
-          </tr>
-          <tr>
-            <td>Payment</td>
-            <td>Full payment required 30 days prior to departure.</td>
-          </tr>
+          ${data.importantNotes.map(note => `
+            <tr>
+              <td>${note.point}</td>
+              <td>${note.details}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
+      ` : ''}
       
       <!-- Scope of Service -->
+      ${data.scopeOfService.length > 0 ? `
       <div class="section-title">Scope Of Service</div>
       <table class="info-table">
         <thead>
@@ -777,34 +677,18 @@ const generatePDFContent = (data: ItineraryData): string => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Flight Ticket Confirmation</td>
-            <td>Round trip economy class airfare.</td>
-          </tr>
-          <tr>
-            <td>Hotel Booking</td>
-            <td>3-star hotels on twin sharing basis.</td>
-          </tr>
-          <tr>
-            <td>Visa</td>
-            <td>Singapore visa assistance.</td>
-          </tr>
-          <tr>
-            <td>Activities</td>
-            <td>As per itinerary.</td>
-          </tr>
-          <tr>
-            <td>Transfers</td>
-            <td>Airport transfers and inter-city transfers.</td>
-          </tr>
-          <tr>
-            <td>Meals</td>
-            <td>Breakfast at hotels.</td>
-          </tr>
+          ${data.scopeOfService.map(service => `
+            <tr>
+              <td>${service.service}</td>
+              <td>${service.details}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
+      ` : ''}
       
       <!-- Inclusion Summary -->
+      ${data.inclusions.length > 0 ? `
       <div class="section-title">Inclusion Summary</div>
       <table class="info-table">
         <thead>
@@ -816,40 +700,20 @@ const generatePDFContent = (data: ItineraryData): string => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Flights</td>
-            <td>1</td>
-            <td>Round trip economy class airfare</td>
-            <td>Confirmed</td>
-          </tr>
-          <tr>
-            <td>Hotels</td>
-            <td>3</td>
-            <td>3-star hotels on twin sharing basis</td>
-            <td>Confirmed</td>
-          </tr>
-          <tr>
-            <td>Activities</td>
-            <td>5</td>
-            <td>Universal Studios, Gardens by the Bay, Sentosa Island, Singapore Zoo, River Safari</td>
-            <td>Confirmed</td>
-          </tr>
-          <tr>
-            <td>Transfers</td>
-            <td>2</td>
-            <td>Airport transfers</td>
-            <td>Confirmed</td>
-          </tr>
-          <tr>
-            <td>Meals</td>
-            <td>3</td>
-            <td>Breakfast at hotels</td>
-            <td>Confirmed</td>
-          </tr>
+          ${data.inclusions.map(inclusion => `
+            <tr>
+              <td>${inclusion.category}</td>
+              <td>${inclusion.count}</td>
+              <td>${inclusion.details}</td>
+              <td>${inclusion.status}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
+      ` : ''}
       
       <!-- Activity Table -->
+      ${data.activities.length > 0 ? `
       <div class="section-title">Activity Table</div>
       <table class="info-table">
         <thead>
@@ -861,84 +725,28 @@ const generatePDFContent = (data: ItineraryData): string => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Singapore</td>
-            <td>Gardens by the Bay</td>
-            <td>Sightseeing</td>
-            <td>3-4 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Universal Studios Singapore</td>
-            <td>Theme Park</td>
-            <td>Full Day</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Sentosa Island</td>
-            <td>Leisure</td>
-            <td>4-5 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>S.E.A. Aquarium</td>
-            <td>Aquarium</td>
-            <td>2-3 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Wings of Time</td>
-            <td>Show</td>
-            <td>1 hour</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Singapore Zoo</td>
-            <td>Zoo</td>
-            <td>4-5 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>River Safari</td>
-            <td>Wildlife</td>
-            <td>3-4 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Night Safari</td>
-            <td>Wildlife</td>
-            <td>3-4 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Merlion Park</td>
-            <td>Sightseeing</td>
-            <td>1 hour</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Marina Bay Sands SkyPark</td>
-            <td>Sightseeing</td>
-            <td>2-3 hours</td>
-          </tr>
-          <tr>
-            <td>Singapore</td>
-            <td>Orchard Road</td>
-            <td>Shopping</td>
-            <td>3-4 hours</td>
-          </tr>
+          ${data.activities.map(activity => `
+            <tr>
+              <td>${activity.city || ''}</td>
+              <td>${activity.title}</td>
+              <td>${activity.type || ''}</td>
+              <td>${activity.timeRequired || ''}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
-      
-      <!-- Terms and Conditions -->
-      <div class="terms-link">Click here to read terms and conditions</div>
+      ` : ''}
       
       <!-- Payment Plan -->
+      ${data.installments.length > 0 || data.totalAmount > 0 ? `
       <div class="section-title">Payment Plan</div>
+      ${data.totalAmount > 0 ? `
       <div class="payment-summary">
-        <div class="total-amount">₹50,000 (For ${totalTravelers} Pax, i.e., ₹25,000/Pax)</div>
+        <div class="total-amount">${data.currency || '₹'}${data.totalAmount} (For ${totalTravelers} Pax, i.e., ${data.currency || '₹'}${Math.round(data.totalAmount / totalTravelers)}/Pax)</div>
         <div class="per-person">Paid: Not Collected</div>
       </div>
+      ` : ''}
+      ${data.installments.length > 0 ? `
       <table class="info-table">
         <thead>
           <tr>
@@ -948,61 +756,41 @@ const generatePDFContent = (data: ItineraryData): string => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Booking Amount</td>
-            <td>₹10,000</td>
-            <td>10-Nov-2024</td>
-          </tr>
-          <tr>
-            <td>2nd Installment</td>
-            <td>₹20,000</td>
-            <td>15-Nov-2024</td>
-          </tr>
-          <tr>
-            <td>Final Payment</td>
-            <td>₹20,000</td>
-            <td>20-Nov-2024</td>
-          </tr>
+          ${data.installments.map(installment => `
+            <tr>
+              <td>${installment.name}</td>
+              <td>${data.currency || '₹'}${installment.amount}</td>
+              <td>${installment.dueDate}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
+      ` : ''}
+      ` : ''}
       
       <!-- Visa Details -->
+      ${data.visaType || data.visaProcessingDays ? `
       <div class="section-title">Visa Details</div>
       <table class="info-table">
         <thead>
           <tr>
             <th>Visa Type</th>
-            <th>Validity</th>
             <th>Processing Days</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Tourist Visa</td>
-            <td>30 Days</td>
-            <td>7-10 Days</td>
+            <td>${data.visaType || ''}</td>
+            <td>${data.visaProcessingDays || ''}</td>
           </tr>
         </tbody>
       </table>
+      ` : ''}
       
       <!-- Call to Action -->
       <div class="cta-section">
         <div class="cta-title">PLAN.PACK.GO!</div>
         <button class="book-now-btn">Book Now</button>
-      </div>
-      
-      <!-- Footer -->
-      <div class="footer">
-        <div class="footer-left">
-          <div class="footer-logo">vigovia</div>
-          <div class="footer-info">
-            <div>vigovia.com</div>
-            <div>Registered Office: 123, Green Park, New Delhi, India</div>
-            <div>Phone: +91-9876543210</div>
-            <div>Email: info@vigovia.com</div>
-            <div>CIN: U74999DL2017PTC311111</div>
-          </div>
-        </div>
       </div>
     </div>
   `;
